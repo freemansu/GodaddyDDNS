@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import argparse
 import json
 import logging
 from logging.config import dictConfig
@@ -89,6 +90,11 @@ def get_public_ip():
 
 
 if __name__ == '__main__':
-    config = load_config('config.json')
+    parser = argparse.ArgumentParser(description='A Godaddy API Based Dynamic DNS')
+    parser.add_argument('-c', dest='config_file', default='config.json',
+                        help='set the config file (default: config.json)')
+
+    args = parser.parse_args()
+    config = load_config(args.config_file)
     public_ip = get_public_ip()
     set_dns_record(config, public_ip)
