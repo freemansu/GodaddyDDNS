@@ -14,21 +14,50 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import requests
 import json
+import logging
+from logging.config import dictConfig
+
+import requests
+
+logging.config.dictConfig({
+    'version': 1,
+    'disable_existing_loggers': False,  # this fixes the problem
+
+    'formatters': {
+        'standard': {
+            'format': '%(levelname) -3s %(asctime)s %(module)s:%(lineno)s %(funcName)s: %(message)s'
+        },
+    },
+    'handlers': {
+        'default': {
+            'level': 'INFO',
+            'formatter': 'standard',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['default'],
+            'level': 'INFO',
+            'propagate': True
+        }
+    }
+})
+logger = logging.getLogger(__name__)
 
 
-def load_config(file):
-    fp = open(file)
-    config = json.load(fp)
-    return config
+def load_config(filename):
+    fp = open(filename)
+    return json.load(fp)
 
 
 def set_dns_record(config, public_ip):
     api_key = config['api_key']
     api_secret = config['api_secret']
     domain = config['domain']
-    url = 'https://api.godaddy.com/v1/domains/{domain}/records/{type}/{name}'.format(domain=domain, type='A', name='ddns')
+    url = 'https://api.godaddy.com/v1/domains/{domain}/records/{type}/{name}'.format(domain=domain, type='A',
+                                                                                     name='ddns')
     header = {'Authorization': 'sso-key {API_KEY}:{API_SECRET}'.format(API_KEY=api_key, API_SECRET=api_secret)}
     data = [
         {
@@ -39,19 +68,9 @@ def set_dns_record(config, public_ip):
         }
     ]
 
-    jsonData = json.dumps(data, sort_keys=False)
-    response = requests.put(url=url, json=jsonData, headers=header)
+    logger.info("OK")
+    response = requests.put(url=url, json=json.dumps(data, sort_keys=False), headers=header)
     print response.text
-
-
-def is_subdomain_exists(subdomain):
-    api_key = config['api_key']
-    api_secret = config['api_secret']
-    url = 'https://api.godaddy.com/v1/domains/{domain}/records/{type}/{name}'.format(domain=subdomain, type='A', name='ddns')
-    header = {'Authorization': 'sso-key {API_KEY}:{API_SECRET}'.format(API_KEY=api_key, API_SECRET=api_secret)}
-
-    response = requests.get(url=url, headers=header)
-    return response.text != u'[]'
 
 
 def get_public_ip():
@@ -64,13 +83,12 @@ def get_public_ip():
     ips = []
     for url in urls:
         ip = requests.get(url).text
-        ips.append(ip)
+        ips.append(ip.strip())
 
     return max(ips, key=ips.count)
 
 
 if __name__ == '__main__':
     config = load_config('config.json')
-    is_subdomain_exists(config['domain'])
     public_ip = get_public_ip()
     set_dns_record(config, public_ip)
