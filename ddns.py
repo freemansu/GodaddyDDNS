@@ -1,4 +1,4 @@
-'''
+"""
 Copyright 2017 [Su Yu, yusu.work@gmail.com]
 
 Licensed under the Apache License, Version 2.0 (the 'License');
@@ -12,11 +12,12 @@ distributed under the License is distributed on an 'AS IS' BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
-import sys
+"""
+
 import argparse
 import json
 import logging
+import sys
 from logging.config import dictConfig
 
 import requests
@@ -69,7 +70,7 @@ class DDNS:
         }]
 
         try:
-            response = requests.put(url=url, json=json.dumps(payload), headers=header)
+            response = requests.put(url=url, json=payload, headers=header)
             if response.status_code is not 200:
                 logger.error('call goadddy api error: {info}'.format(info=response.text))
                 sys.exit(1)
@@ -85,7 +86,7 @@ if __name__ == '__main__':
 
         'formatters': {
             'standard': {
-                'format': '%(levelname) -3s %(asctime)s %(module)s:%(lineno)s %(funcName)s: %(message)s'
+                'format': '%(levelname) -3s %(asctime)s %(module)s:%(lineno)s  %(message)s'
             },
         },
         'handlers': {
