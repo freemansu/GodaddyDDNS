@@ -31,7 +31,8 @@ class DDNS:
         self.sub_domain = sub_domain
         self.public_ip = None
 
-    def __get_public_ip(self):
+    @staticmethod
+    def __get_public_ip():
         public_ip_api_urls = [
             'https://api.ipify.org',
             'http://ipv4bot.whatismyipaddress.com/',
@@ -48,12 +49,11 @@ class DDNS:
 
         if len(public_ips) == 0:
             logger.error('can not get public ip')
+            sys.exit(1)
 
-        self.public_ip = max(public_ips, key=public_ips.count)
+        return max(public_ips, key=public_ips.count)
 
     def set_dns_record(self):
-        self.__get_public_ip()
-
         url = 'https://api.godaddy.com/v1/domains/{domain}/records/{type}/{name}' \
             .format(domain=self.domain, type='A', name=self.sub_domain)
 
@@ -64,7 +64,7 @@ class DDNS:
         public_ip = self.public_ip.encode('ascii', 'ignore')
         payload = [{
             "type": 'A',
-            "name": 'ddns',
+            "name": self.sub_domain,
             "data": public_ip,
             "ttl": 600
         }]
